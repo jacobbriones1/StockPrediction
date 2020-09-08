@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
+#  Main libraries 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
@@ -11,12 +9,21 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import EarlyStopping
 
+#  Helper libraries
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
 
+
+#  Set figure size 
 plt.rcParams["figure.figsize"]=(15,15)
+
+#  Read in Data using pandas
 df=pd.read_csv('C:/Users/admin/Desktop/Programs/RNN/TSLA.csv')
 print('Number of rows and columns:', df.shape)
 print(df.head(5))
 
+#  Create training and Test sets 
 training_set = df.iloc[:800, 1:2].values
 test_set = df.iloc[800:, 1:2].values
 
@@ -31,11 +38,11 @@ for i in range(60, 800):
     X_train.append(training_set_scaled[i-50:i, 0])
     y_train.append(training_set_scaled[i, 0])
 
+#  Create new training inputs and outputs as np arrays
 X_train, y_train = np.array(X_train), np.array(y_train)
-
-#  (740, 60, 1)
 X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 
+#  Define Neural Network Model
 model = Sequential()
 #  Adding the first LSTM layer and some Dropout regularisation
 model.add(LSTM(units=50, return_sequences=True,
@@ -53,13 +60,14 @@ model.add(Dropout(0.2))
 # Adding the output layer
 model.add(Dense(units=1))
 
-# Compiling the RNN
+
+# Compile model
 model.compile(optimizer='adam', loss='mean_squared_error')
 
-# Fitting the RNN to the Training set
+# Train model on data
 model.fit(X_train, y_train, epochs=210, batch_size=32)
 
-# Getting the predicted stock price of 2017
+# Getting the predicted stock price
 dataset_train = df.iloc[:800, 1:2]
 dataset_test = df.iloc[800:, 1:2]
 dataset_total = pd.concat((dataset_train, dataset_test), axis=0)
@@ -75,11 +83,11 @@ X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 print(X_test.shape)
 # (459, 60, 1)
 
+#  Predict
 predicted_stock_price = model.predict(X_test)
 predicted_stock_price = sc.inverse_transform(predicted_stock_price)
 
-# Visualising the results
-
+#  Visualize results
 plt.plot(df.loc[800:, 'Date'],dataset_test.values, color = 'red', label ='Real TESLA Stock Price')
 plt.plot(df.loc[800:, 'Date'],predicted_stock_price, color ='blue', label ='Predicted TESLA Stock Price')
 plt.xticks(np.arange(0,459,50))
