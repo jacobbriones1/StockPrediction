@@ -1,3 +1,7 @@
+# Methods for creating and using LSTM Networks for stock market data 
+#  predictions.
+#  -Jacob Briones
+
 from getStockData import (stock_df, plot_prices)
 import pandas as pd
 import numpy as np
