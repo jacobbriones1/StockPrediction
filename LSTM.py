@@ -1,4 +1,4 @@
-from getStockData import stock_df, plot_prices
+from getStockData import (stock_df, plot_prices)
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -7,6 +7,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Dropout
 from sklearn.preprocessing import MinMaxScaler
+import os
 
 def reshape_inputs(inputs,K):
     
@@ -19,13 +20,10 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     if show_plot == True:
         # Visualize data
         plot_prices(df)
-    
-    # Store Close Prices into array
         
     # Create MinMax scaler
     scaler = MinMaxScaler(feature_range = (0, 1))
     
-    # Normalize Data using a minmax scaler
     data_size = len(list(df['Close'].values))
     
     # Create training data and test data
@@ -57,8 +55,8 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     return (x_train, y_train), (x_test, y_test)
     
     
-#  Define Neural Network Architecture
-def create_network(x):
+
+def create_model(x):
     model = Sequential()
     
     # Add 3 LSTM layers and 3 dropout layers(for preventing overfitting)
@@ -79,15 +77,22 @@ def create_network(x):
     model.add(Dense(units = 1))
     
     return model
-    
-def train(x_train, y_train, model, num_epochs, batch_size):
-    model.compile(optimizer = 'adam', loss = 'mean_squared_error')
-    model.fit(x_train, y_train, epochs = num_epochs, batch_size = batch_size)
 
-def predict(x_test, y_test, model):
+# returns pretrained model
+def load_model(filepath):
+    return tf.keras.models.loadmodel(filepath)
+
+# Trains given model, and saves the entire model.
+def train(x_train, y_train, model, num_epochs, batch_size):
+    
+    model.compile(optimizer = 'adam', loss = 'mean_squared_error')
+    model.fit(x_train, y_train,epochs = num_epochs, batch_size = batch_size)
+    model.save('saved_model\my_model') 
+
+# Generates predictions of test data given a trained model
+def predict(x_test, model):
     scaler = MinMaxScaler(feature_range = (0,1))
     predicted_price = model.predict(x_test)
-    predicted_price = scaler.fit_transform(predicted_price)
+    predicted_price = scaler.inverse_transform(predicted_price)
     return predicted_price
-    
     
