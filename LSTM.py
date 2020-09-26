@@ -12,10 +12,8 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Dropout
 from sklearn.preprocessing import MinMaxScaler
-import os
 
 def reshape_inputs(inputs,K):
-    
     inputs = np.array(inputs)
     return np.reshape(inputs,(inputs.shape[0], K ,1))
     
@@ -25,8 +23,6 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     if show_plot == True:
         # Visualize data
         plot_prices(df)
-    
-    # Store Close Prices into array
         
     # Create MinMax scaler
     scaler = MinMaxScaler(feature_range = (0, 1))
@@ -60,7 +56,8 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     return (x_train, y_train), test
     
     
-#  Define Neural Network Architecture
+#  Create Neural Network Architecture
+#   x: training input
 def create_model(x):
     model = Sequential()
     
@@ -83,9 +80,11 @@ def create_model(x):
     
     return model
 
+#  load pre-trained model
 def load_model(filepath):
     return tf.keras.models.load_model(filepath)
-    
+
+# Train a given model on specified stock data
 def train(x_train, y_train, model, num_epochs, batch_size, model_name = None):
     
     model.compile(optimizer = 'adam', loss = 'mean_squared_error')
@@ -94,9 +93,9 @@ def train(x_train, y_train, model, num_epochs, batch_size, model_name = None):
         model.save('saved_model\model') 
     else:
         model.save('saved_model'+'\\',+model_name)
-        
 
-
+# Generate a given model's prediction of stock prices for
+#  specified test data
 def predict(test, model):
     scaler = MinMaxScaler(feature_range = (0,1))
     scaler.fit(test)
