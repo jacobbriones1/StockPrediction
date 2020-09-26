@@ -2,7 +2,9 @@
 
 Still Developing..
 
+![](Apple_stockprices.PNG)
+
 ![](TESLA_stock_pred.png)
 
-![](Apple_stockprice.PNG)
+
 
