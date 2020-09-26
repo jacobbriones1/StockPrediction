@@ -9,6 +9,3 @@ Still Developing..
 
 ## Analytical and Visual capabilities for stock price prediction
 ![](TESLA_stock_pred.png)
-
-
-
