@@ -24,18 +24,30 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     if show_plot == True:
         # Visualize data
         plot_prices(df)
+    
+    # Store Close Prices into array
         
     # Create MinMax scaler
     scaler = MinMaxScaler(feature_range = (0, 1))
     
+    # Normalize Data using a minmax scaler
     data_size = len(list(df['Close'].values))
     
     # Create training data and test data
     train = df.iloc[0:round(data_size*0.85)+1, 1:2].values
-    test = df.iloc[round(data_size*0.85)+1:, 1:2].values
-    train_sc = scaler.fit_transform(train)
-    test_sc = scaler.fit_transform(test)
     
+    # Keep one variable as a dataframe for formatting test data
+    train_data = df.iloc[0:round(data_size*0.85)+1, 1:2]
+    
+    # Scale training data
+    train_sc = scaler.fit_transform(train)
+    
+    # Format Test data
+    test = df.iloc[round(data_size*0.85)+1:,1:2]
+    dataset_total = pd.concat((train, test), axis = 0)
+    test = dataset_total[len(dataset_total) - len(test) - K:].values
+    test = test.reshape(-1,1)
+   
     x_train, y_train =[], []
     
     for i in range(K, len(train_sc)):
@@ -45,21 +57,10 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     x_train = reshape_inputs(list(x_train), K)
     y_train = np.array(y_train)
     
-    # Repeat for test data
-    x_test, y_test =[], []
-    
-    for i in range(K, len(test_sc)):
-        x_test.append(test_sc[(i-K):i])
-        y_test.append(test_sc[i])
-        
-    x_test = reshape_inputs(list(x_test),K,)
-    
-    y_test = np.array(y_test)
-    
-    return (x_train, y_train), (x_test, y_test)
+    return (x_train, y_train), test
     
     
-
+#  Define Neural Network Architecture
 def create_model(x):
     model = Sequential()
     
@@ -82,21 +83,26 @@ def create_model(x):
     
     return model
 
-# returns pretrained model
 def load_model(filepath):
-    return tf.keras.models.loadmodel(filepath)
-
-# Trains given model, and saves the entire model.
+    return tf.keras.models.load_model(filepath)
+    
 def train(x_train, y_train, model, num_epochs, batch_size):
     
     model.compile(optimizer = 'adam', loss = 'mean_squared_error')
     model.fit(x_train, y_train,epochs = num_epochs, batch_size = batch_size)
-    model.save('saved_model\my_model') 
+    model.save('saved_model\model') 
 
-# Generates predictions of test data given a trained model
-def predict(x_test, model):
+
+def predict(test, model):
     scaler = MinMaxScaler(feature_range = (0,1))
-    predicted_price = model.predict(x_test)
-    predicted_price = scaler.inverse_transform(predicted_price)
-    return predicted_price
+    scaler.fit(test)
+    x_sc = scaler.transform(test)
+    K = model.layers[0].input_shape[1]
     
+    x_test = []
+    for i in range(K, len(x_sc)):
+        x_test.append(x_sc[i-K: i])
+    x_test = reshape_inputs(x_test, K)
+    predicted_price = model.predict(x_test)
+    predicted_price = scaler.inverse_transform(x_sc)
+    return predicted_price
