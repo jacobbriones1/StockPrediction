@@ -64,20 +64,13 @@ def create_model(x):
     # Add 3 LSTM layers and 3 dropout layers(for preventing overfitting)
     model.add(LSTM(units = 50, 
                    return_sequences = True, 
-                   input_shape = (x.shape[1], 1)))
-    
+                   input_shape = (x.shape[1], 1)))  
+    model.add(Dropout(0.2))  
+    model.add(LSTM(units = 50, return_sequences = True))   
     model.add(Dropout(0.2))
-    
-    model.add(LSTM(units = 50, return_sequences = True))
-    
-    model.add(Dropout(0.2))
-    
     model.add(LSTM(units = 50))
-    
     model.add(Dropout(0.2))
-
     model.add(Dense(units = 1))
-    
     return model
 
 #  load pre-trained model
@@ -109,4 +102,3 @@ def predict(test, model):
     predicted_price = model.predict(x_test)
     predicted_price = scaler.inverse_transform(x_sc)
     return predicted_price
-    
