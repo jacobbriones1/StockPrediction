@@ -36,7 +36,7 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     # Create training data and test data
     train_data = df.iloc[0:round(data_size*0.85)+1, 1:2]
     test = df.iloc[round(data_size*0.85)+1:,1:2]
-    dataset_total = pd.concat((train, test), axis = 0)
+    dataset_total = pd.concat((train_data, test), axis = 0)
     test = dataset_total[len(dataset_total) - len(test) - K:].values
     test = test.reshape(-1,1)
     
