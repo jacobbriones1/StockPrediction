@@ -1,5 +1,6 @@
-# Methods for creating and using LSTM Networks for stock market data 
-#  predictions.
+# Methods for creating and using LSTM Networks 
+#   for predicting stock prices
+
 #  -Jacob Briones
 
 from getStockData import (stock_df, plot_prices)
