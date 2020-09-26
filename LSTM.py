@@ -3,7 +3,7 @@
 
 #  -Jacob Briones
 
-from getStockData import (stock_df, plot_prices)
+from StockData import (stock_df, plot_prices)
 import pandas as pd
 import numpy as np
 import tensorflow as tf
