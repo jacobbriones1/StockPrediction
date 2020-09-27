@@ -23,6 +23,8 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     if show_plot == True:
         # Visualize data
         plot_prices(df)
+    
+    # Store Close Prices into array
         
     # Create MinMax scaler
     scaler = MinMaxScaler(feature_range = (0, 1))
@@ -31,18 +33,19 @@ def create_dataset(ticker, startdate, interval, K, show_plot = False):
     data_size = len(list(df['Close'].values))
     
     # Create training data and test data
-    train_data = df.iloc[0:round(data_size*0.85)+1, 1:2]
-    test = df.iloc[round(data_size*0.85)+1:,1:2]
-    dataset_total = pd.concat((train_data, test), axis = 0)
-    test = dataset_total[len(dataset_total) - len(test) - K:].values
-    test = test.reshape(-1,1)
-    
     train = df.iloc[0:round(data_size*0.85)+1, 1:2].values
+    
+    # Keep one variable as a dataframe for formatting test data
+    train_data = df.iloc[0:round(data_size*0.85)+1, 1:2]
     
     # Scale training data
     train_sc = scaler.fit_transform(train)
     
     # Format Test data
+    test = df.iloc[round(data_size*0.85)+1:,1:2]
+    dataset_total = pd.concat((train_data, test), axis = 0)
+    test = dataset_total[len(dataset_total) - len(test) - K:].values
+    test = test.reshape(-1,1)
    
     x_train, y_train =[], []
     
@@ -78,18 +81,15 @@ def load_model(filepath):
     return tf.keras.models.load_model(filepath)
 
 # Train a given model on specified stock data
-def train(x_train, y_train, model, num_epochs, batch_size, model_name = None):
+def train(x_train, y_train, model, num_epochs, batch_size, filepath = None):
     
     model.compile(optimizer = 'adam', loss = 'mean_squared_error')
     model.fit(x_train, y_train,epochs = num_epochs, batch_size = batch_size)
-    if model_name == None:
-        model.save('saved_model\model') 
-    else:
-        model.save('saved_model'+'\\',+model_name)
-
-# Generate a given model's prediction of stock prices for
-#  specified test data
-def predict(test, model):
+    if filepath != None:
+        model.save(filepath) 
+   
+        
+def predict(test, model, plot = False):
     scaler = MinMaxScaler(feature_range = (0,1))
     scaler.fit(test)
     x_sc = scaler.transform(test)
@@ -100,5 +100,21 @@ def predict(test, model):
         x_test.append(x_sc[i-K: i])
     x_test = reshape_inputs(x_test, K)
     predicted_price = model.predict(x_test)
-    predicted_price = scaler.inverse_transform(x_sc)
-    return predicted_price
+    predicted_price = scaler.inverse_transform(predicted_price)
+    
+    if plot == True:
+        test = test.reshape(len(list(test)))
+        df= pd.DataFrame({'Prediction':predicted_price.reshape(len(list(predicted_price))),
+                  'Actual':list(test)[40:] })
+        fig, ax = plt.subplots(figsize=(15, 12), nrows = 1, ncols = 1)
+                
+        ax.plot(df['Prediction'],color='red',label='Prediction',marker='o', linestyle='--',lw=1.2)
+        ax.plot(df['Actual'],color='teal',label='Actual',marker = 'o', linestyle='-',lw=1.2)
+        plt.title('Model Predictiion',fontsize=24)
+        ax.legend(fontsize=18)
+        ax.set_ylabel("Price", fontsize = 18)
+        ax.set_xlabel("Time Step", fontsize = 18)
+        ax.grid()
+        plt.show()
+    
+    return predicted_price.reshape(len(list(predicted_price)))
